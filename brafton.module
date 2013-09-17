@@ -306,6 +306,17 @@ function brafton_admin_form()	{
 		),
 		'#default_value' => variable_get( 'brafton_import_date','published' ),
 	);
+	$form['brafton_comments'] = array(
+		'#type' => 'select',
+		'#title' => t( 'Enable Comments?' ),
+		'#description' => t( 'Enable, Hide, or Disable Comments' ),
+		'#options' => array(
+			0 => 'Disabled',
+			1 => 'Hidden',
+			2 => 'Enabled',
+		),
+		'#default_value' => variable_get( 'brafton_comments',0 ),
+	);
 	$form['brafton_overwrite'] = array(
 		'#type' => 'checkbox',
 		'#title' => t( 'Overwrite any changes made to existing content.' ),
@@ -767,6 +778,7 @@ function brafton_cron()	{
 				$node->created = strtotime( $value->$date() );
 				$node->promote = 0;
 				$node->sticky = 0;
+				$node->comment = variable_get( 'brafton_comments' );
 				$node->body[ $node->language ][0] = array(
 					'value' => $value->getText(),
 					'summary' => $value->getExtract(),
@@ -862,6 +874,7 @@ function brafton_cron()	{
 				$node->created = strtotime( $thisArticle->fields['lastModifiedDate'] );
 				$node->promote = 0;
 				$node->sticky = 0;
+				$node->comment = variable_get( 'brafton_comments' );
 				$node->body[ $node->language ][0] = array(
 					'value' => $thisArticle->fields['content'],
 					'summary' => $thisArticle->fields['extract'],
