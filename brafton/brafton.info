@@ -1,8 +1,0 @@
-name = All in One Brafton Content Integrator
-description = "This module creates all of the functionality neccessary to fully integrate a Brafton blog into your Drupal 7 website."
-core = 7.x
-version = 7.2
-package = Brafton Content Integrator
-files[] = brafton.module
-scripts[] = video.js
-stylesheets[all][] = videojs.css
