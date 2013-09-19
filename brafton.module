@@ -292,7 +292,7 @@ function brafton_admin_form()	{
 		'#title' => t( 'Content Author' ),
 		'#description' => t( 'The author of the content.' ),
 		'#options' => $user_array,
-		'#default_value' => '',
+		'#default_value' => variable_get('brafton_author'),
 		'#prefix' => '<h2>Import Options</h2>',
 	);
 	$form['brafton_import_date'] = array(
