@@ -159,12 +159,12 @@ function brafton_node_info() {
   $brafton_nodes =  array(
         'b_news' => array(
 			'name' => t( 'News Article' ),
-			'base' => 'brafton',
+			'base' => 'node_content',
 			'description' => t( 'Use <em>news articles</em> for your Brafton, ContentLEAD, or Castleford blog.' ),
         ),
         'b_video' => array(
 			'name' => t( 'Video Article' ),
-			'base' => 'brafton',
+			'base' => 'node_content',
 			'description' => t( 'Use <em>Video articles</em> for your Brafton, ContentLEAD, or Castleford video blog.' ),
         ),
     );
