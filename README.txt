@@ -43,9 +43,10 @@ Settings
 Feed Type:
 	- API Key
 		Feed #0 Author - Select user for the author of the Brafton articles
-		Brafton XML feed URL: Feed #0 - Enter Brafton XML feed URL with "/news" appended to the end
-			e.g. http://api.brafton.com/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/news
-
+		Brafton Feed - Select the correct domain for your api feed.
+			e.g. http://api.brafton.com/
+			- Enter your API Key
+			eg: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
 	- Archive
 		Feed #0 Author - Select user for the author of the Brafton articles
 		Brafton Archive File Location - Select archive file provided by Brafton
