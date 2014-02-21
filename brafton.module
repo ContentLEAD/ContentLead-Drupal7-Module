@@ -630,6 +630,11 @@ function get_image_attributes( $articleobj,$feedtype = NULL,$photoClient = NULL,
 
 }
 
+function get_category( $categories, $i ){
+	$name = $categories[$i]->getName();
+	return $name;
+}
+
 function set_article_categories( $articleobj,$bundle,$categoryObj = NULL )	{
 
 	//Grabs the categories from the feed.
@@ -644,7 +649,7 @@ function set_article_categories( $articleobj,$bundle,$categoryObj = NULL )	{
 	}
 
 	//Checks to see if the terms already exist in the Brafton Taxonomy Vocabulary.  If they do not, new terms are created.
-	
+	$i = 0; 
 	$brafton_vocabulary = taxonomy_vocabulary_machine_name_load( $vocab );
 	$vid = $brafton_vocabulary->vid;
 	$cat_array = array();
@@ -653,7 +658,8 @@ function set_article_categories( $articleobj,$bundle,$categoryObj = NULL )	{
 			$name = $categories[0]->name;
 		}
 		else {
-			$name = $categories[0]->getName();
+			$name = get_category( $categories, $i );
+			$i = $i + 1; 
 		}
 		$check_cat = taxonomy_get_term_by_name( $name );
 		$found = 0;
