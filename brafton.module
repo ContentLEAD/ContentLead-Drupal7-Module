@@ -322,6 +322,12 @@ function brafton_admin_form()	{
 		'#title' => t( 'Overwrite any changes made to existing content.' ),
 		'#default_value' => variable_get( 'brafton_overwrite',0 ),
 	);
+	$form['brafton_published'] = array(
+		'#type' => 'checkbox',
+		'#title' => t( 'Import articles as unpublished.' ),
+		'#default_value' => variable_get( 'brafton_published',0 ),
+	
+	);
 	$form['brafton_blog_page'] = array(
 		'#type' => 'checkbox',
 		'#title' => t( 'Create a News Page at "mydomain.com/news".' ),
@@ -735,7 +741,8 @@ function brafton_cron()	{
 	$is_video_secret = variable_get( 'brafton_video_secret_key' );
 	$is_archive = variable_get( 'brafton_archive_file' );
 	$overwrite = variable_get( 'brafton_overwrite' );
-
+	$is_published = variable_get( 'brafton_published' );
+	
 	if( $feed_type == 'articles' || $feed_type == 'both' )	{
 		if( $is_api || $is_archive )	{
 
@@ -775,7 +782,14 @@ function brafton_cron()	{
 				$categories = set_article_categories( $value,'b_news' );
 		
 				//Instantiation of each article component as a field in the node object.
-		
+					if ($is_published==1){
+				$node->status = 0;
+
+				}
+				else {
+				$node->status = 1;
+					}
+
 				$node->type = 'b_news';
 				$node->language = LANGUAGE_NONE;
 				$node->title = $value->getHeadline();
