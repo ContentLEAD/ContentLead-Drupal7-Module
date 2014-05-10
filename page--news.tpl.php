@@ -54,6 +54,8 @@
    	$term= taxonomy_term_load($tid);
    	$nids[]=$node->nid;
    	$tids[] = $term->tid;
+   	$termpath = taxonomy_term_uri($term);
+   	$termpath = drupal_get_path_alias($termpath['path']);
       $options = array('absolute' => TRUE);
      // print_r($node);
       $url = url('node/' . $node->nid, $options);
@@ -63,7 +65,7 @@
 
 
       echo '<a href='.$url.'>'.$node->title.'</a><div class="sum">'.$node->body['und'][0]['summary'].'</div>';
-      echo '<h4>Categories</h4>'.$term->name.'</li>';
+      echo '<h4>Categories</h4><a href="'.$termpath.'">'.$term->name.'</a></li>';
     }
 
     echo "</ul>";
@@ -90,7 +92,8 @@ echo '<ul class="cats">';
 
     $tid=$node->field_brafton_term['und'][0]['tid'];
    	$term= taxonomy_term_load($tid);
-   	
+   	$termpath = taxonomy_term_uri($term);
+   	$termpath = drupal_get_path_alias($termpath['path']);
 if($term->tid == $tids[$inc]){
 	if($range < 3 ){
 		    echo '<h1>'.$term->name.'</h1>';
@@ -103,7 +106,7 @@ if($term->tid == $tids[$inc]){
 
 
 		      echo '<a href='.$url.'>'.$node->title.'</a><div class="sum">'.$node->body['und'][0]['summary'].'</div>';
-		      echo '<h4>Categories</h4>'.$term->name.'</li>';
+		      echo '<h4>Categories</h4><a href="'.$termpath.'">'.$term->name.'</a></li>';
 		$range++;
       //end range
   		}
