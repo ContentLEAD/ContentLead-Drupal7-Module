@@ -794,7 +794,7 @@ function brafton_cron()	{
 				$node->language = LANGUAGE_NONE;
 				$node->title = $value->getHeadline();
 				$node->uid = variable_get( 'brafton_author' );
-				$node->status = 1;
+				//$node->status = 1;
 				$node->created = strtotime( $value->$date() );
 				$node->promote = 0;
 				$node->sticky = 0;
