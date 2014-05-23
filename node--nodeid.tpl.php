@@ -150,7 +150,10 @@
 
 
 //get all terms in brafton vocabulary
-$terms = taxonomy_get_tree(1);
+$voc = taxonomy_vocabulary_machine_name_load('b_news_t');
+
+$terms = taxonomy_get_tree($voc->vid);
+
 
 //loop through terms
 foreach($terms as $termsin){
