@@ -700,7 +700,7 @@ function check_if_article_exists( $id,$bundle )	{
 	$query = new EntityFieldQuery();
 	$query->entityCondition( 'entity_type','node' );
 	$query->entityCondition( 'bundle',$bundle );
-	$query->propertyCondition('status', 1);
+	$query->propertyCondition('status', array(1, 0) );
 	$query->fieldCondition( 'field_brafton_id','value',$id,'=' );
 	$result = $query->execute();
 	return $result;
