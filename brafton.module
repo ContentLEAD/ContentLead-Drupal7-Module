@@ -886,9 +886,40 @@ function brafton_cron()	{
 				foreach($list as $listItem){
 					$output=$videoOutClient->Get($listItem->id);
 					//logMsg($output->path);
-					if($output->type=="htmlmp4" && !$mp4) {$mp4=$output->path; $width=$output->width; $height=$output->height;}
-					if($output->type=="htmlogg" && !$ogg) {$ogg=$output->path; $width=$output->width; $height=$output->height;}
-					if($output->type=="flash" && !$flv) {$flv=$output->path; $width=$output->width; $height=$output->height;}
+					//if($output->type=="htmlmp4" && !$mp4) {$mp4=$output->path; $width=$output->width; $height=$output->height;}
+					//if($output->type=="htmlogg" && !$ogg) {$ogg=$output->path; $width=$output->width; $height=$output->height;}
+					//if($output->type=="flash" && !$flv) {$flv=$output->path; $width=$output->width; $height=$output->height;}
+
+					$type = $output->type;
+					switch($type){
+						case "htmlmp4": 
+							$mp4=$output->path; 
+							$width=$output->width; 
+							$height=$output->height;
+							break;
+
+						case "htmlogg": 
+							$ogg=$output->path; 
+							$width=$output->width; 
+							$height=$output->height;
+							break;
+
+						case "flash": 
+							$flv=$output->path; 
+							$width=$output->width; 
+							$height=$output->height;
+							break;
+
+						case "custom": 
+							$path = $output->path;
+							$ext = pathinfo($path, PATHINFO_EXTENSION);
+							switch($ext){
+								case "mp4": $HDmp4 = $path; break;
+								case "ogg": $HDogg = $path; break;
+								case "flv": $HDflv = $path; break;
+							}
+					}
+
 				}
 				
 				$embedCode=<<<EOT
