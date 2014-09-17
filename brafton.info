@@ -4,5 +4,3 @@ core = 7.x
 version = 7.2
 package = Brafton Content Integrator
 files[] = brafton.module
-scripts[] = video.js
-stylesheets[all][] = videojs.css
