@@ -191,6 +191,27 @@ function brafton_node_view_alter( &$build )	{
 
 }
 
+
+/**
+*	Implementation of hook_init to include atlantis scripts to the head of pages. 
+*/
+
+function brafton_init()	{
+
+	  drupal_add_css('http://p.ninjacdn.co.uk/atlantisjs/v0.11.7/atlantisjs.css', array('type' => 'external'));
+
+	  drupal_add_js('http://p.ninjacdn.co.uk/atlantisjs/v0.11.7/atlantis.js', array(
+	  'type' => 'external',
+	  'scope' => 'header',
+	  'group' => JS_THEME,
+	  'every_page' => TRUE,
+	  'weight' => -1,
+	));
+
+
+}
+
+
 /**
 *	Implementation of hook_permission to create toggleable access permissions for the blog page.
 */
