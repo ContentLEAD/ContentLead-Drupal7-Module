@@ -399,7 +399,47 @@ function brafton_admin_form()	{
 	$form['brafton_related_videos'] = array(
 		'#type' => 'checkbox',
 		'#title' => t( 'Add related videos to Brafton videos.' ),
-		'#default_value' => variable_get( 'brafton_related_videos',0 ),
+		'#default_value' => variable_get( 'brafton_related_videos',"" ),
+	);
+	$form['brafton_video_pause_cta_text'] = array(
+		'#type' => 'textfield',
+		'#title' => t( 'Atlantis Pause CTA Text' ),
+		'#description' => t( 'Default video pause cta text every article imports' ),
+		'#default_value' => variable_get( 'brafton_video_pause_cta_text',"" ),
+		'#size' => 20,
+		'#maxlength' => 20,
+	);
+	$form['brafton_video_end_cta_title'] = array(
+		'#type' => 'textfield',
+		'#title' => t( 'Atlantis End CTA Title' ),
+		'#description' => t( 'Default video end cta title every article imports' ),
+		'#default_value' => variable_get( 'brafton_video_end_cta_title',"" ),
+		'#size' => 20,
+		'#maxlength' => 140,
+	);
+	$form['brafton_video_end_cta_subtitle'] = array(
+		'#type' => 'textfield',
+		'#title' => t( 'Atlantis End CTA Subtitle' ),
+		'#description' => t( 'Default video end cta subtitle every article imports' ),
+		'#default_value' => variable_get( 'brafton_video_end_cta_subtitle',"" ),
+		'#size' => 20,
+		'#maxlength' => 140,
+	);
+	$form['brafton_video_end_cta_link'] = array(
+		'#type' => 'textfield',
+		'#title' => t( 'Atlantis End CTA Link' ),
+		'#description' => t( 'Default video end cta link every article imports. Requires http://' ),
+		'#default_value' => variable_get( 'brafton_video_end_cta_link',"" ),
+		'#size' => 20,
+		'#maxlength' => 500,
+	);
+	$form['brafton_video_end_cta_text'] = array(
+		'#type' => 'textfield',
+		'#title' => t( 'Atlantis End CTA Text' ),
+		'#description' => t( 'Default video end cta text every article imports' ),
+		'#default_value' => variable_get( 'brafton_video_end_cta_text',"" ),
+		'#size' => 20,
+		'#maxlength' => 20,
 	);
 	return system_settings_form($form);
 
@@ -831,7 +871,7 @@ function brafton_cron()	{
 					$node->field_brafton_image[ $node->language ][0]['title'] = $image['title'];
 				}
 				$node->field_brafton_id[ $node->language ][0]['value'] = $id;
-				
+				//Setting the article pause cta text
 				//ensure categories don't get added twice
 				
 				$cats=false;
@@ -899,6 +939,13 @@ function brafton_cron()	{
 				$presplash = $thisArticle->fields['preSplash'];
 				$postsplash = $thisArticle->fields['postSplash'];
 				
+				$pause_cta_text = variable_get( 'brafton_video_pause_cta_text' );
+				$end_cta_title = variable_get( 'brafton_video_end_cta_title' );
+				$end_cta_subtitle = variable_get( 'brafton_video_end_cta_subtitle' );
+				$end_cta_link = variable_get( 'brafton_video_end_cta_link' );
+				$end_cta_text = variable_get( 'brafton_video_end_cta_text' );
+
+
 				$videoList=$videoOutClient->ListForArticle($id,0,10);
 				$list=$videoList->items;
 				$ogg=false;
@@ -944,7 +991,23 @@ function brafton_cron()	{
 				}
 				
 				$embedCode=<<<EOT
-					<video id='video-$id' class="ajs-default-skin atlantis-js" controls preload="auto" width="$width" height='$height' poster='$presplash'> <source src="$mp4" type='video/mp4' data-resolution="288" /> <source src="$ogg" type='video/ogg' data-resolution="288" /> <source src="$flv" type='video/flash' data-resolution="288" /> <source src="$HDmp4" type='video/mp4' data-resolution="720p" /> <source src="$HDogg" type='video/ogg' data-resolution="720p" /> <source src="$HDflv" type='video/flash' data-resolution="720p" /> </video> <script type="text/javascript"> var atlantisVideo = AtlantisJS.Init({ videos: [{ id: "video-$id" }] }); </script>
+					<video id='video-$id' class="ajs-default-skin atlantis-js" controls preload="auto" width="$width" height='$height' poster='$presplash'> <source src="$mp4" type='video/mp4' data-resolution="288" /> <source src="$ogg" type='video/ogg' data-resolution="288" /> <source src="$flv" type='video/flash' data-resolution="288" /> <source src="$HDmp4" type='video/mp4' data-resolution="720p" /> <source src="$HDogg" type='video/ogg' data-resolution="720p" /> <source src="$HDflv" type='video/flash' data-resolution="720p" /> </video> <script type="text/javascript"> var atlantisVideo = AtlantisJS.Init({ videos: [{
+					        id: "video-$id",
+					        pauseCallToAction: {
+					            text: "$pause_cta_text"
+					        },
+					        endOfVideoOptions: {
+					            callToAction: {
+					                title: "$end_cta_title",
+					                subtitle: "$end_cta_subtitle",
+					                button: {
+					                    link: "$end_cta_link",
+					                    text: "$end_cta_text"
+					                }
+					            }
+					        }
+					    }]
+					});</script>
 EOT;
 				
 				//$embedCode = $videoClient->VideoPlayers()->GetWithFallback( $id,'redbean',1,'rcflashplayer',1 );
