@@ -902,8 +902,8 @@ function brafton_cron()	{
 	}
 	if( $feed_type == 'videos' || $feed_type == 'both' )	{
 		if( $is_video_public && $is_video_secret )	{
-			$baseURL = 'http://api.video.brafton.com/v2/';
-			$photoURI = "http://pictures.video.brafton.com/v2/";
+			$baseURL = 'http://livevideo.api.brafton.com/v2/';
+			$photoURI = "http://pictures.brafton.com/v2/";
 			$videoClient = new AdferoVideoClient( $baseURL,$is_video_public,$is_video_secret );
 			$videoOutClient = $videoClient->videoOutputs();
 			$client = new AdferoClient( $baseURL,$is_video_public,$is_video_secret );
