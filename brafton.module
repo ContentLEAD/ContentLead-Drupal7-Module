@@ -401,13 +401,26 @@ function brafton_admin_form()	{
 		'#title' => t( 'Add related videos to Brafton videos.' ),
 		'#default_value' => variable_get( 'brafton_related_videos',"" ),
 	);
+	$form['brafton_video_ctas'] = array(
+		'#type' => 'checkbox',
+		'#title' => t( 'Add video CTAs' ),
+		'#default_value' => variable_get( 'brafton_video_ctas',0 ),
+	);
 	$form['brafton_video_pause_cta_text'] = array(
 		'#type' => 'textfield',
 		'#title' => t( 'Atlantis Pause CTA Text' ),
 		'#description' => t( 'Default video pause cta text every article imports' ),
 		'#default_value' => variable_get( 'brafton_video_pause_cta_text',"" ),
 		'#size' => 20,
-		'#maxlength' => 20,
+		'#maxlength' => 500,
+	);
+	$form['brafton_video_pause_cta_link'] = array(
+		'#type' => 'textfield',
+		'#title' => t( 'Atlantis Pause CTA Link' ),
+		'#description' => t( 'Default video pause cta link every article imports' ),
+		'#default_value' => variable_get( 'brafton_video_pause_cta_link',"" ),
+		'#size' => 20,
+		'#maxlength' => 500,
 	);
 	$form['brafton_video_end_cta_title'] = array(
 		'#type' => 'textfield',
@@ -902,8 +915,25 @@ function brafton_cron()	{
 	}
 	if( $feed_type == 'videos' || $feed_type == 'both' )	{
 		if( $is_video_public && $is_video_secret )	{
-			$baseURL = 'http://livevideo.api.brafton.com/v2/';
-			$photoURI = "http://pictures.brafton.com/v2/";
+			$domain = variable_get( 'brafton_api_root' );
+			switch ($domain) {
+				case 'http://api.brafton.com':
+					$baseURL = 'http://livevideo.api.brafton.com/v2/';
+					$photoURI = "http://pictures.brafton.com/v2/";
+					break;
+				case 'http://api.contentlead.com':
+					$baseURL = 'http://livevideo.api.contentlead.com/v2/';
+					$photoURI = "http://pictures.contentlead.com/v2/";
+					break;
+				 case 'http://api.castleford.com.au':
+				 	$baseURL = 'http://livevideo.api.castleford.com.au/v2/';
+					$photoURI = "http://pictures.castleford.com.au/v2/";
+					break;
+				default:
+					$baseURL = 'http://livevideo.api.brafton.com/v2/';
+					$photoURI = "http://pictures.brafton.com/v2/";
+					break;
+			}
 			$videoClient = new AdferoVideoClient( $baseURL,$is_video_public,$is_video_secret );
 			$videoOutClient = $videoClient->videoOutputs();
 			$client = new AdferoClient( $baseURL,$is_video_public,$is_video_secret );
@@ -939,7 +969,9 @@ function brafton_cron()	{
 				$presplash = $thisArticle->fields['preSplash'];
 				$postsplash = $thisArticle->fields['postSplash'];
 				
+				$cta_option = variable_get( 'brafton_video_ctas' );
 				$pause_cta_text = variable_get( 'brafton_video_pause_cta_text' );
+				$pause_cta_link = variable_get( 'brafton_video_pause_cta_link' );
 				$end_cta_title = variable_get( 'brafton_video_end_cta_title' );
 				$end_cta_subtitle = variable_get( 'brafton_video_end_cta_subtitle' );
 				$end_cta_link = variable_get( 'brafton_video_end_cta_link' );
@@ -948,53 +980,30 @@ function brafton_cron()	{
 
 				$videoList=$videoOutClient->ListForArticle($id,0,10);
 				$list=$videoList->items;
-				$ogg=false;
-				$mp4=false;
-				$flv=false;
+				//$ogg=false;
+				//$mp4=false;
+				//$flv=false;
+				$embedCode = sprintf( "<video id='video-%s' class=\"ajs-default-skin atlantis-js\" controls preload=\"auto\" width='512' height='288' poster='%s' >", $id, $presplash );
+
 				foreach($list as $listItem){
 					$output=$videoOutClient->Get($listItem->id);
-					//logMsg($output->path);
-					//if($output->type=="htmlmp4" && !$mp4) {$mp4=$output->path; $width=$output->width; $height=$output->height;}
-					//if($output->type=="htmlogg" && !$ogg) {$ogg=$output->path; $width=$output->width; $height=$output->height;}
-					//if($output->type=="flash" && !$flv) {$flv=$output->path; $width=$output->width; $height=$output->height;}
-
 					$type = $output->type;
-					switch($type){
-						case "htmlmp4": 
-							$mp4=$output->path; 
-							$width=$output->width; 
-							$height=$output->height;
-							break;
+					$path = $output->path; 
+					$resolution = $output->height; 
+					$source = generate_source_tag( $path, $resolution );
+					$embedCode .= $source; 
+				}		
+				$embedCode .= '</video>';
 
-						case "htmlogg": 
-							$ogg=$output->path; 
-							$width=$output->width; 
-							$height=$output->height;
-							break;
-
-						case "flash": 
-							$flv=$output->path; 
-							$width=$output->width; 
-							$height=$output->height;
-							break;
-
-						case "custom": 
-							$path = $output->path;
-							$ext = pathinfo($path, PATHINFO_EXTENSION);
-							switch($ext){
-								case "mp4": $HDmp4 = $path; break;
-								case "ogg": $HDogg = $path; break;
-								case "flv": $HDflv = $path; break;
-							}
-					}
-
-				}
-				
-				$embedCode=<<<EOT
-					<video id='video-$id' class="ajs-default-skin atlantis-js" controls preload="auto" width="$width" height='$height' poster='$presplash'> <source src="$mp4" type='video/mp4' data-resolution="288" /> <source src="$ogg" type='video/ogg' data-resolution="288" /> <source src="$flv" type='video/flash' data-resolution="288" /> <source src="$HDmp4" type='video/mp4' data-resolution="720p" /> <source src="$HDogg" type='video/ogg' data-resolution="720p" /> <source src="$HDflv" type='video/flash' data-resolution="720p" /> </video> <script type="text/javascript"> var atlantisVideo = AtlantisJS.Init({ videos: [{
-					        id: "video-$id",
+				$script = '<script type="text/javascript">';
+	            $script .=  'var atlantisVideo = AtlantisJS.Init({';
+	            $script .=  'videos: [{';
+	            $script .='id: "video-' . $id . '"';
+	            if($cta_option){
+	            $script .=',';
+	            $script	.= <<<EOT
 					        pauseCallToAction: {
-					            text: "$pause_cta_text"
+					            text: "<a href='$pause_cta_link'>$pause_cta_text</a>"
 					        },
 					        endOfVideoOptions: {
 					            callToAction: {
@@ -1006,9 +1015,12 @@ function brafton_cron()	{
 					                }
 					            }
 					        }
-					    }]
-					});</script>
 EOT;
+				}
+	            $script .= '}]';
+	            $script .= '});';
+	            $script .=  '</script>';
+				$embedCode .= $script;  
 				
 				//$embedCode = $videoClient->VideoPlayers()->GetWithFallback( $id,'redbean',1,'rcflashplayer',1 );
 				//if ( strpos( $embedCode->embedCode,'adobe' ) < 30 )	{
@@ -1062,7 +1074,7 @@ EOT;
 				
 				$sitemapaddition = array(
 					"url" => $sitemap_url,
-					"location" => $mp4,
+					"location" => $path,
 					"title" => $node->title,
 					"thumbnail" => $presplash,
 					"description" =>$thisArticle->fields['content'],
@@ -1076,6 +1088,14 @@ EOT;
 		brafton_add_URLs($sitemap);
 	}
 
+}
+
+/* video updates*/
+function generate_source_tag($src, $resolution)
+{
+    $tag = ''; 
+    $ext = pathinfo($src, PATHINFO_EXTENSION); 
+    return sprintf('<source src="%s" type="video/%s" data-resolution="%s" />', $src, $ext, $resolution );
 }
 
 function brafton_add_URLs($sitemaps){
