@@ -799,12 +799,12 @@ function checkAuthor($author, $byLine){
     }
     else{
         if(!empty($byLine)){
-            if(!($user = user_load_by_name($d_uid_name))){
+            if(!($user = user_load_by_name($byLine))){
                 //create user programatically 
                 $password = user_password(8);
                 $fields = array(
-                    'name' => $d_uid_name,
-                    'mail' => $d_uid_name.rand().'@example.com',
+                    'name' => $byLine,
+                    'mail' => $byLine.rand().'@example.com',
                     'pass' => $password,
                     'status' => 1,
                     'init' => 'email address',
