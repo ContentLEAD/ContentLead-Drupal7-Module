@@ -244,7 +244,7 @@ function brafton_admin_form()	{
     //Add option for getting dynamic author.
     //0 is also the id for anonymous author as a fall back if no author is set in the feed
     $user_array[0] = 'Get Author from Article';
-    
+
 	//Renders the admin form using the Drupal forms API.
 	$form['brafton_feed_type'] = array(
 		'#type' => 'select',
@@ -312,7 +312,6 @@ function brafton_admin_form()	{
 		'#size' => 10,
 		'#maxlength' => 10,
 	);
-    
 	$form['brafton_author'] = array(
 		'#type' => 'select',
 		'#title' => t( 'Content Author' ),
@@ -406,13 +405,26 @@ function brafton_admin_form()	{
 		'#title' => t( 'Add related videos to Brafton videos.' ),
 		'#default_value' => variable_get( 'brafton_related_videos',"" ),
 	);
+	$form['brafton_video_ctas'] = array(
+		'#type' => 'checkbox',
+		'#title' => t( 'Add video CTAs' ),
+		'#default_value' => variable_get( 'brafton_video_ctas',0 ),
+	);
 	$form['brafton_video_pause_cta_text'] = array(
 		'#type' => 'textfield',
 		'#title' => t( 'Atlantis Pause CTA Text' ),
 		'#description' => t( 'Default video pause cta text every article imports' ),
 		'#default_value' => variable_get( 'brafton_video_pause_cta_text',"" ),
 		'#size' => 20,
-		'#maxlength' => 20,
+		'#maxlength' => 500,
+	);
+	$form['brafton_video_pause_cta_link'] = array(
+		'#type' => 'textfield',
+		'#title' => t( 'Atlantis Pause CTA Link' ),
+		'#description' => t( 'Default video pause cta link every article imports' ),
+		'#default_value' => variable_get( 'brafton_video_pause_cta_link',"" ),
+		'#size' => 20,
+		'#maxlength' => 500,
 	);
 	$form['brafton_video_end_cta_title'] = array(
 		'#type' => 'textfield',
@@ -761,13 +773,45 @@ function set_article_categories( $articleobj,$bundle,$categoryObj = NULL )	{
 
 function check_if_article_exists( $id,$bundle )	{
 
-	//Queries the brafto_id table and checks for the id
+	//Queries Brafton ID, and returns an array of the results, or an empty array, if there are none.
 	
 	$query = new EntityFieldQuery();
 	$query->fieldCondition( 'field_brafton_id','value',$id,'=' );
 	$result = $query->execute();
 	return $result;
 
+}
+
+/*if Get author from article is selected checks for an author in the element byLine of the feed.  If an author exsists checks that user author name against list of users in the db and creates them if they do not exsist.  Defaults to anonymous if if no author in byline and get author from article is selected
+*/
+function checkAuthor($author, $byLine){
+    $user_id = $author;
+    if($user_id){
+        return $user_id;
+    }
+    else{
+        if(!empty($byLine)){
+            if(!($user = user_load_by_name($d_uid_name))){
+                //create user programatically 
+                $password = user_password(8);
+                $fields = array(
+                    'name' => $d_uid_name,
+                    'mail' => $d_uid_name.rand().'@example.com',
+                    'pass' => $password,
+                    'status' => 1,
+                    'init' => 'email address',
+                    'roles' => array(
+                      DRUPAL_AUTHENTICATED_RID => 'authenticated user',
+                    ),
+                  );
+                $user = user_save('', $fields);
+            }
+            return $user->uid;
+        }
+        else{
+            return $user_id;
+        }
+    }
 }
 
 function load_article_array( $is_archive )	{
@@ -790,37 +834,6 @@ function load_article_array( $is_archive )	{
 
 }
 
-/*if Get author from article is selected checks for an author in the element byLine of the feed.  If an author exsists checks that user author name against list of users in the db and creates them if they do not exsist.  Defaults to anonymous if if no author in byline and get author from article is selected
-*/
-function checkAuthor($author, $byLine){
-    $user_id = $author;
-    if($user_id){
-        return $user_id;
-    }
-    else{
-        if(!empty($byLine)){
-            if(!($user = user_load_by_name($byLine))){
-                //create user programatically 
-                $password = user_password(8);
-                $fields = array(
-                    'name' => $byLine,
-                    'mail' => $byLine.rand().'@example.com',
-                    'pass' => $password,
-                    'status' => 1,
-                    'init' => 'email address',
-                    'roles' => array(
-                      DRUPAL_AUTHENTICATED_RID => 'authenticated user',
-                    ),
-                  );
-                $user = user_save('', $fields);
-            }
-            return $user->uid;
-        }
-        else{
-            return $user_id;
-        }
-    }
-}
 /**
 *	Implementation of hook_cron, which runs the importer and saves the articles into the Drupal database as node type b_news.
 */
@@ -836,10 +849,7 @@ function brafton_cron()	{
 	$is_archive = variable_get( 'brafton_archive_file' );
 	$overwrite = variable_get( 'brafton_overwrite' );
 	$is_published = variable_get( 'brafton_published' );
-    
-    //Define default fields for b_news type_url_form_media
-
-    
+	
 	if( $feed_type == 'articles' || $feed_type == 'both' )	{
 		if( $is_api || $is_archive )	{
 
@@ -886,12 +896,12 @@ function brafton_cron()	{
 				else {
 				$node->status = 1;
 					}
-                
+
 				$node->type = 'b_news';
 				$node->language = LANGUAGE_NONE;
 				$node->title = $value->getHeadline();
 				$node->uid = checkAuthor(variable_get( 'brafton_author' ), $value->getByLine());
-				//$nodestatus = 1;
+				//$node->status = 1;
 				$node->created = strtotime( $value->$date() );
 				$node->promote = 0;
 				$node->sticky = 0;
@@ -938,8 +948,25 @@ function brafton_cron()	{
 	}
 	if( $feed_type == 'videos' || $feed_type == 'both' )	{
 		if( $is_video_public && $is_video_secret )	{
-			$baseURL = 'http://livevideo.api.brafton.com/v2/';
-			$photoURI = "http://pictures.brafton.com/v2/";
+			$domain = variable_get( 'brafton_api_root' );
+			switch ($domain) {
+				case 'http://api.brafton.com':
+					$baseURL = 'http://livevideo.api.brafton.com/v2/';
+					$photoURI = "http://pictures.brafton.com/v2/";
+					break;
+				case 'http://api.contentlead.com':
+					$baseURL = 'http://livevideo.api.contentlead.com/v2/';
+					$photoURI = "http://pictures.contentlead.com/v2/";
+					break;
+				 case 'http://api.castleford.com.au':
+				 	$baseURL = 'http://livevideo.api.castleford.com.au/v2/';
+					$photoURI = "http://pictures.castleford.com.au/v2/";
+					break;
+				default:
+					$baseURL = 'http://livevideo.api.brafton.com/v2/';
+					$photoURI = "http://pictures.brafton.com/v2/";
+					break;
+			}
 			$videoClient = new AdferoVideoClient( $baseURL,$is_video_public,$is_video_secret );
 			$videoOutClient = $videoClient->videoOutputs();
 			$client = new AdferoClient( $baseURL,$is_video_public,$is_video_secret );
@@ -975,7 +1002,9 @@ function brafton_cron()	{
 				$presplash = $thisArticle->fields['preSplash'];
 				$postsplash = $thisArticle->fields['postSplash'];
 				
+				$cta_option = variable_get( 'brafton_video_ctas' );
 				$pause_cta_text = variable_get( 'brafton_video_pause_cta_text' );
+				$pause_cta_link = variable_get( 'brafton_video_pause_cta_link' );
 				$end_cta_title = variable_get( 'brafton_video_end_cta_title' );
 				$end_cta_subtitle = variable_get( 'brafton_video_end_cta_subtitle' );
 				$end_cta_link = variable_get( 'brafton_video_end_cta_link' );
@@ -984,53 +1013,30 @@ function brafton_cron()	{
 
 				$videoList=$videoOutClient->ListForArticle($id,0,10);
 				$list=$videoList->items;
-				$ogg=false;
-				$mp4=false;
-				$flv=false;
+				//$ogg=false;
+				//$mp4=false;
+				//$flv=false;
+				$embedCode = sprintf( "<video id='video-%s' class=\"ajs-default-skin atlantis-js\" controls preload=\"auto\" width='512' height='288' poster='%s' >", $id, $presplash );
+
 				foreach($list as $listItem){
 					$output=$videoOutClient->Get($listItem->id);
-					//logMsg($output->path);
-					//if($output->type=="htmlmp4" && !$mp4) {$mp4=$output->path; $width=$output->width; $height=$output->height;}
-					//if($output->type=="htmlogg" && !$ogg) {$ogg=$output->path; $width=$output->width; $height=$output->height;}
-					//if($output->type=="flash" && !$flv) {$flv=$output->path; $width=$output->width; $height=$output->height;}
-
 					$type = $output->type;
-					switch($type){
-						case "htmlmp4": 
-							$mp4=$output->path; 
-							$width=$output->width; 
-							$height=$output->height;
-							break;
+					$path = $output->path; 
+					$resolution = $output->height; 
+					$source = generate_source_tag( $path, $resolution );
+					$embedCode .= $source; 
+				}		
+				$embedCode .= '</video>';
 
-						case "htmlogg": 
-							$ogg=$output->path; 
-							$width=$output->width; 
-							$height=$output->height;
-							break;
-
-						case "flash": 
-							$flv=$output->path; 
-							$width=$output->width; 
-							$height=$output->height;
-							break;
-
-						case "custom": 
-							$path = $output->path;
-							$ext = pathinfo($path, PATHINFO_EXTENSION);
-							switch($ext){
-								case "mp4": $HDmp4 = $path; break;
-								case "ogg": $HDogg = $path; break;
-								case "flv": $HDflv = $path; break;
-							}
-					}
-
-				}
-				
-				$embedCode=<<<EOT
-					<video id='video-$id' class="ajs-default-skin atlantis-js" controls preload="auto" width="$width" height='$height' poster='$presplash'> <source src="$mp4" type='video/mp4' data-resolution="288" /> <source src="$ogg" type='video/ogg' data-resolution="288" /> <source src="$flv" type='video/flash' data-resolution="288" /> <source src="$HDmp4" type='video/mp4' data-resolution="720p" /> <source src="$HDogg" type='video/ogg' data-resolution="720p" /> <source src="$HDflv" type='video/flash' data-resolution="720p" /> </video> <script type="text/javascript"> var atlantisVideo = AtlantisJS.Init({ videos: [{
-					        id: "video-$id",
+				$script = '<script type="text/javascript">';
+	            $script .=  'var atlantisVideo = AtlantisJS.Init({';
+	            $script .=  'videos: [{';
+	            $script .='id: "video-' . $id . '"';
+	            if($cta_option){
+	            $script .=',';
+	            $script	.= <<<EOT
 					        pauseCallToAction: {
-					            text: "$pause_cta_text"
+					            text: "<a href='$pause_cta_link'>$pause_cta_text</a>"
 					        },
 					        endOfVideoOptions: {
 					            callToAction: {
@@ -1042,9 +1048,12 @@ function brafton_cron()	{
 					                }
 					            }
 					        }
-					    }]
-					});</script>
 EOT;
+				}
+	            $script .= '}]';
+	            $script .= '});';
+	            $script .=  '</script>';
+				$embedCode .= $script;  
 				
 				//$embedCode = $videoClient->VideoPlayers()->GetWithFallback( $id,'redbean',1,'rcflashplayer',1 );
 				//if ( strpos( $embedCode->embedCode,'adobe' ) < 30 )	{
@@ -1098,7 +1107,7 @@ EOT;
 				
 				$sitemapaddition = array(
 					"url" => $sitemap_url,
-					"location" => $mp4,
+					"location" => $path,
 					"title" => $node->title,
 					"thumbnail" => $presplash,
 					"description" =>$thisArticle->fields['content'],
@@ -1112,6 +1121,15 @@ EOT;
 		brafton_add_URLs($sitemap);
 	}
 
+}
+
+
+/* video updates*/
+function generate_source_tag($src, $resolution)
+{
+    $tag = ''; 
+    $ext = pathinfo($src, PATHINFO_EXTENSION); 
+    return sprintf('<source src="%s" type="video/%s" data-resolution="%s" />', $src, $ext, $resolution );
 }
 
 function brafton_add_URLs($sitemaps){
