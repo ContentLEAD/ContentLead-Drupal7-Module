@@ -197,7 +197,7 @@ function brafton_node_view_alter( &$build )	{
 */
 
 function brafton_init()	{
-
+    /*
 	  drupal_add_css('http://p.ninjacdn.co.uk/atlantisjs/v0.11.7/atlantisjs.css', array('type' => 'external'));
 
 	  drupal_add_js('http://p.ninjacdn.co.uk/atlantisjs/v0.11.7/atlantis.js', array(
@@ -207,7 +207,16 @@ function brafton_init()	{
 	  'every_page' => TRUE,
 	  'weight' => -1,
 	));
+    */
+    drupal_add_css('http://atlantisjs.brafton.com/v1/atlantisjs.v1.3.css', array('type' => 'external'));
 
+	  drupal_add_js('http://atlantisjs.brafton.com/v1/atlantis.min.v1.3.js', array(
+	  'type' => 'external',
+	  'scope' => 'header',
+	  'group' => JS_THEME,
+	  'every_page' => TRUE,
+	  'weight' => -1,
+	));
 
 }
 
