@@ -208,7 +208,7 @@ function brafton_init()	{
 	  'weight' => -1,
 	));
     */
-    drupal_add_css('http://atlantisjs.brafton.com/v1/atlantisjs.v1.3.css', array('type' => 'external'));
+    drupal_add_css('http://atlantisjs.brafton.com/v1/atlantisjsv1.3.css', array('type' => 'external'));
 
 	  drupal_add_js('http://atlantisjs.brafton.com/v1/atlantis.min.v1.3.js', array(
 	  'type' => 'external',
