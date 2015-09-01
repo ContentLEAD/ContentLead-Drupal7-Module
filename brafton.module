@@ -1002,7 +1002,7 @@ function brafton_cron()	{
 					continue;
 				}
 				$thisArticle = $client->Articles()->Get( $id );
-				if( $categories->ListForFeed( $feedList->items[ $feedNum ]->id,0,100 )->items )	{
+				if( $categories->ListForArticle( $id,0,100 )->items )	{
 					$categoryId = $categories->ListForArticle( $id,0,100 )->items[0]->id;
 					$category = $categories->Get( $categoryId );
 					$categories = set_article_categories( $value,'b_video',$category );
